@@ -14,7 +14,7 @@ from camallop.imap import *
 
 
 def main():
-    print("Hello World!")
+    imap = IMAPReader
 
 
 if __name__ == "__main__":
