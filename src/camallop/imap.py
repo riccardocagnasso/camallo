@@ -22,7 +22,6 @@ class IMAPReader(object):
         username=None,
         password=None
     ):
-        print("START")
         self.uid_parser = UIDParser()
 
         self.imap = imaplib.IMAP4_SSL(address, port)
@@ -30,19 +29,23 @@ class IMAPReader(object):
         if username and password:
             self.imap.login(username, password)
 
-        status, messages = self.imap.select("INBOX", readonly=True)
-        messages = int(messages[0])
+    def get_messages_list(self):
+        messages = []
 
-        print("STATUS", status, "MESSSAGES", messages)
-
+        self.imap.select("INBOX", readonly=True)
         resp, data = self.imap.uid('FETCH', '1:*', '(UID)')
-        # self.imap.fetch('1:*', "(ID,UID)")
 
         for message in data:
             message = message.decode('utf-8')
             m_id, m_uid = self.uid_parser.parse(message)
 
-            print("MESSAGE", m_id, m_uid)
+            messages.append({
+                'id': m_id,
+                'uid': m_uid
+            })
 
-        self.imap.close()
+        return messages
+
+    def close(self):
         self.imap.logout()
+        self.imap.close()

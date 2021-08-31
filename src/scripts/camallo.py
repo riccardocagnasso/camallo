@@ -12,19 +12,37 @@ import click
 
 from camallop import *
 from camallop.imap import *
+from tinydb.storages import JSONStorage
+from tinydb.middlewares import CachingMiddleware
+from tinydb import TinyDB
+
+from camallop.db import *
+from appdirs import user_data_dir
 
 
 @click.command()
 @click.option('--username', type=click.STRING)
 @click.option('--password', type=click.STRING)
+@click.option('--db', type=click.Path(exists=True))
 @click.argument('server', type=click.STRING)
 def main(
         username,
         password,
         server
 ):
+    if db is None:
+        db = user_data_dir('camallo')
+
+    storage = TinyDB(
+        db,
+        storage=CachingMiddleware(JSONStorage)
+    )
+
+    db = MessagesDB(storage)
+
     imap = IMAPReader(
         server,
+        db,
         username=username,
         password=password
     )
