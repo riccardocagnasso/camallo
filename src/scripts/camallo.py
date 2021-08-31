@@ -8,13 +8,26 @@ and/or modify it under the terms of the Do What The Fuck You Want
 To Public License, Version 2, as published by Sam Hocevar. See
 http://www.wtfpl.net/ for more details.
 """
+import click
 
 from camallop import *
 from camallop.imap import *
 
 
-def main():
-    imap = IMAPReader
+@click.command()
+@click.option('--username', type=click.STRING)
+@click.option('--password', type=click.STRING)
+@click.argument('server', type=click.STRING)
+def main(
+        username,
+        password,
+        server
+):
+    imap = IMAPReader(
+        server,
+        username=username,
+        password=password
+    )
 
 
 if __name__ == "__main__":

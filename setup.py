@@ -26,6 +26,8 @@ setup(
         'src/scripts/camallo.py'
     ],
     install_requires=[
-        'click'
+        'click',
+        'lark-parser',
+        'tinydb'
     ]
 )

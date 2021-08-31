@@ -10,7 +10,8 @@ http://www.wtfpl.net/ for more details.
 """
 
 import imaplib
-import pprint
+
+from camallop.parsers.uid import *
 
 
 class IMAPReader(object):
@@ -21,13 +22,27 @@ class IMAPReader(object):
         username=None,
         password=None
     ):
+        print("START")
+        self.uid_parser = UIDParser()
+
         self.imap = imaplib.IMAP4_SSL(address, port)
 
         if username and password:
             self.imap.login(username, password)
 
-        status, messages = self.imap.select("INBOX")
-        N = 3
+        status, messages = self.imap.select("INBOX", readonly=True)
         messages = int(messages[0])
 
         print("STATUS", status, "MESSSAGES", messages)
+
+        resp, data = self.imap.uid('FETCH', '1:*', '(UID)')
+        # self.imap.fetch('1:*', "(ID,UID)")
+
+        for message in data:
+            message = message.decode('utf-8')
+            m_id, m_uid = self.uid_parser.parse(message)
+
+            print("MESSAGE", m_id, m_uid)
+
+        self.imap.close()
+        self.imap.logout()
