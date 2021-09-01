@@ -23,11 +23,16 @@ class IMAPReader(object):
         password=None
     ):
         self.uid_parser = UIDParser()
-
         self.imap = imaplib.IMAP4_SSL(address, port)
 
-        if username and password:
-            self.imap.login(username, password)
+        self.username = username
+        self.password = password
+
+        if self.username and self.password:
+            self.imap.login(
+                self.username,
+                self.password
+            )
 
     def get_messages_list(self):
         messages = []
@@ -45,6 +50,19 @@ class IMAPReader(object):
             })
 
         return messages
+
+    def fetch_message(self, i):
+
+        self.imap.select("INBOX", readonly=True)
+
+        status, m = self.imap.fetch(str(i), "(RFC822)")
+
+        print("STATUS", status)
+        print("M", m[0][1])
+
+        f = open('out.eml', 'wb')
+        f.write(m[0][1])
+        f.close()
 
     def close(self):
         self.imap.logout()

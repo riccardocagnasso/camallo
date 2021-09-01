@@ -21,10 +21,11 @@ class Worker(object):
         messages = imap.get_messages_list()
 
         for m in messages:
-            if self.db.check_message():
-                pass
+            if self.db.check_message(imap.username, m['uid']):
+                print("MESSAGE ALREADY IN", imap.username, m['uid'])
             else:
-                self.save_message()
+                self.save_message(imap.username, m)
 
-    def save_message(self):
-        pass
+    def save_message(self, username, m):
+        print("SAVE MESSAGE", username, m['uid'])
+        self.db.add_message(username, m['uid'])
