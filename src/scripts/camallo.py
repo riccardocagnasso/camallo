@@ -9,10 +9,12 @@ To Public License, Version 2, as published by Sam Hocevar. See
 http://www.wtfpl.net/ for more details.
 """
 import click
+import os
 
 from camallop import *
 from camallop.imap import *
 from camallop.worker import *
+from camallop.config import *
 
 from tinydb.storages import JSONStorage
 from tinydb.middlewares import CachingMiddleware
@@ -23,27 +25,36 @@ from appdirs import user_data_dir
 
 
 @click.command()
-@click.option('--username', type=click.STRING)
-@click.option('--password', type=click.STRING)
-@click.option('--db', type=click.Path())
-@click.argument('server', type=click.STRING)
+@click.option('--config', type=click.Path())
 def main(
-        username,
-        password,
-        server,
-        db
+        config
 ):
+    if config is None:
+        config = os.path.join(
+            user_data_dir('camallo'),
+            'config.ini'
+        )
+
+    config = Config.from_file(config)
+    config.create_directories()
+
+    import pprint
+    pprint.pp(dict(config))
+
+    storage = TinyDB(
+        config.db_file,
+        storage=CachingMiddleware(JSONStorage)
+    )
+
+    db = MessagesDB(storage)
+
+    """
     if db is None:
         db = user_data_dir('camallo')
 
     print("DB", db)
 
-    storage = TinyDB(
-        db,
-        storage=CachingMiddleware(JSONStorage)
-    )
 
-    db = MessagesDB(storage)
 
     imap = IMAPReader(
         server,
@@ -60,6 +71,7 @@ def main(
     # storage.close()
 
     imap.fetch_message(1)
+    """
 
 
 if __name__ == "__main__":

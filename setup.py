@@ -28,6 +28,8 @@ setup(
     install_requires=[
         'click',
         'lark-parser',
-        'tinydb'
+        'tinydb',
+        'appdirs',
+        'pytimeparse'
     ]
 )
