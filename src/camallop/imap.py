@@ -14,31 +14,64 @@ import imaplib
 from camallop.parsers.uid import *
 
 
-class IMAPReader(object):
+class IMAPAdapter(object):
+    @classmethod
+    def factory(cls, account):
+        if account.ssl:
+            return SSLAUTHIMAP(
+                account.server,
+                account.port,
+                account.username,
+                account.password
+            )
+        else:
+            raise NotImplementedError()
+
+
+class SSLAUTHIMAP(object):
     def __init__(
         self,
-        address,
-        port=imaplib.IMAP4_SSL_PORT,
-        username=None,
-        password=None
+        server,
+        port,
+        username,
+        password
     ):
-        self.uid_parser = UIDParser()
-        self.imap = imaplib.IMAP4_SSL(address, port)
-
+        self.server = server
+        self.port = port
         self.username = username
         self.password = password
 
-        if self.username and self.password:
-            self.imap.login(
-                self.username,
-                self.password
-            )
+    def connect(self):
+        self.imap = imaplib.IMAP4_SSL(self.server, self.port)
+        self.imap.login(
+            self.username,
+            self.password
+        )
+
+    def disconnect(self):
+        self.imap.close()
+        self.imap.logout()
+
+
+class IMAPReader(object):
+    def __init__(
+        self,
+        imap_adapter,
+    ):
+        self.uid_parser = UIDParser()
+        self.imap_adapter = imap_adapter
+
+    def connect(self):
+        self.imap_adapter.connect()
+
+    def disconnect(self):
+        self.imap_adapter.disconnect()
 
     def get_messages_list(self):
         messages = []
 
-        self.imap.select("INBOX", readonly=True)
-        resp, data = self.imap.uid('FETCH', '1:*', '(UID)')
+        self.imap_adapter.imap.select("INBOX", readonly=True)
+        resp, data = self.imap_adapter.imap.uid('FETCH', '1:*', '(UID)')
 
         for message in data:
             message = message.decode('utf-8')
@@ -53,17 +86,8 @@ class IMAPReader(object):
 
     def fetch_message(self, i):
 
-        self.imap.select("INBOX", readonly=True)
+        self.imap_adapter.imap.select("INBOX", readonly=True)
 
-        status, m = self.imap.fetch(str(i), "(RFC822)")
+        status, m = self.imap_adapter.imap.fetch(str(i), "(RFC822)")
 
-        print("STATUS", status)
-        print("M", m[0][1])
-
-        f = open('out.eml', 'wb')
-        f.write(m[0][1])
-        f.close()
-
-    def close(self):
-        self.imap.logout()
-        self.imap.close()
+        return m

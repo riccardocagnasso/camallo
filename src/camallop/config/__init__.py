@@ -157,7 +157,7 @@ class Config(object):
             os.makedirs(path)
 
     def create_directories(self):
-        # self.create_dir(os.path.dirname(self.db_file))
+        self.create_dir(os.path.dirname(self.db_file))
         self.create_dir(self.storage_folder)
 
         for a in self.accounts:

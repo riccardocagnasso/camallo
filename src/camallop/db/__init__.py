@@ -28,6 +28,7 @@ class MessagesDB(object):
             (Message.account == account) & (Message.uid == uid)
         )
 
-        print("RET", ret)
-
         return len(ret) > 0
+
+    def flush(self):
+        self.db.storage.flush()

@@ -47,14 +47,13 @@ def main(
     )
 
     db = MessagesDB(storage)
+    worker = Worker(
+        config.accounts,
+        db
+    )
 
+    worker.process_account()
     """
-    if db is None:
-        db = user_data_dir('camallo')
-
-    print("DB", db)
-
-
 
     imap = IMAPReader(
         server,
